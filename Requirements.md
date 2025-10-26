@@ -19,6 +19,8 @@ designs are considered in [Design.md](Design.md).
 * Binding one implementation to a service for one client, and another
   implementation to the same service for another client. (Service overriding.)
 * A service can have internal state.
+* `async` service methods.  (Currently
+  [non-trivial](https://users.rust-lang.org/t/async-in-public-trait/108400).)
 * Preferably, circular dependency detection at compile time.
 * Here we prefer Dependency Injection more appropritate for compile-time
   resolution.
@@ -40,6 +42,10 @@ designs are considered in [Design.md](Design.md).
     function is implemented, or panicking with a 'not implemented' error.
   * For methods whose availability can be detected only at run time, the above
     approaches may still be necessary.
+* Ability to wrap existing functions returning a nameless type (such as a
+  Return-Position `impl Trait` type).  (Currently encompasses supporting
+  `async` service methods.  See, e.g.
+  [Announcing `async fn` and return-position `impl Trait` in traits](https://blog.rust-lang.org/2023/12/21/async-fn-rpit-in-traits/).)
 
 ## User Journeys
 
