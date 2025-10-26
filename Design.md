@@ -45,18 +45,19 @@ Listed in [§Desired Features in Requirements.md](Requirements.md#desired-featur
     to produce a (128-bit) unique ID for each type argument passed to
     `request_ref`, or `request_value`.  The ID is used to create a `Request`
     struct which can store and retrieve a value of only the given type
-    argument (with equality defined by its associated type ID).
-    * A call to `Request::provide_value`, or `Request::provide_ref` stores the
-      value passed to it only if it has a matching type ID.
-    * `request_ref` and `request_value` call `Error::provide` with a `Request`
-      with type ID set to the type requested from `request_ref`, or
-      `request_value`.  Then, `Error::provide` calls `request::provide_value`,
-      or `request_provide_ref`, etc. for each value the `Error`-implementing
-      object knows how to provide.  Only a call with a matching type ID stores
-      a calculated injectable value.  All the other `request::provide_*` calls
-      have no effect.  If a value with a matching type ID was stored in the
-      `Request` object, `request_ref` or `request_value` returns it as
-      `Some(injected_result)`.  If no such value was stored, it returns `None`.
+    argument.
+    * A call to `Request::provide_value<T>`, or `Request::provide_ref<T>`
+      creates a `Request` that stores the value passed to it only if it has a
+      matching type ID.
+    * `request_ref<'a, T>` and `request_value<'a, T>` call `Error::provide`
+      with a `Request` matching only `T`.  Then, `Error::provide` calls
+      `request::provide_value`, `request::provide_ref`, or etc. for each value
+      that the `Error`-implementing object knows how to provide.  Only a call
+      with a matching type ID stores a provided value.  All the other
+      `request::provide_*` calls have no effect.  If a value with a matching
+      type ID was stored in the `Request` object, `request_ref` or
+      `request_value` returns it as `Some(injected_result)`.  If no such value
+      was stored, it returns `None`.
 * [Pavex](https://github.com/LukeMathWalker/pavex/blob/main/ARCHITECTURE.md)
   uses its build tool in order to perform code generation before building.  It
   uses the 'classic' style of listing required services as function
