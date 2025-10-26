@@ -44,8 +44,8 @@ Listed in [§Desired Features in Requirements.md](Requirements.md#desired-featur
     [`std::any::TypeId`](https://doc.rust-lang.org/std/any/struct.TypeId.html)
     to produce a (128-bit) unique ID for each type argument passed to
     `request_ref`, or `request_value`.  The ID is used to create a `Request`
-    struct can store and retrieve a value of only the given type argument, and
-    its associated ID.
+    struct which can store and retrieve a value of only the given type
+    argument (with equality defined by its associated type ID).
     * A call to `Request::provide_value`, or `Request::provide_ref` stores the
       value passed to it only if it has a matching type ID.
     * `request_ref` and `request_value` call `Error::provide` with a `Request`
