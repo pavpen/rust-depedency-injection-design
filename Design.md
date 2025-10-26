@@ -74,28 +74,31 @@ Listed in [§Desired Features in Requirements.md](Requirements.md#desired-featur
 ### Service Interface
 
 ```rust
-pub trait HttpClientService {
-    type HttpResponseReader;
+pub trait GetUrl {
+    type Url;
+    type HttpResponse;
     type Error;
 
-    fn get_url(&mut self, url: &Url) -> Result<Self::HttpResponseReader, Self::Error>;
+    fn get_url(
+        &self,
+        url: &Self::Url,
+    ) -> impl Future<Output = Result<Self::HttpResponse, Self::Error>>;
 }
 ```
 
 A service would then be represented by a generic type implementing the service
-trait (`T: HttpClientService`), or by a trait object (e.g.,
-`&impl HttpClientService`).
+trait (`T: GetUrl`), or by a trait object (e.g., `&impl GetUrl`).
 
 ```rust
-fn use_generic_type<HttpClient: HttpClientService>(
-  http_client: &mut HttpClient
+fn use_generic_type<GetUrlService: GetUrl>(
+  get_url_service: &mut GetUrlService
 ) {
-    let result = http_client.get_url(&Url::from("https://very-interesting.org"));
+    let result = get_url_service.get_url(&Url::from("https://very-interesting.org"));
     // . . .
 }
 
-fn use_trait_object(http_client: &mut impl HttpClientService) {
-    let result = http_client.get_url(&Url::from("https://very-interesting.org"));
+fn use_trait_object(get_url_service: &mut impl GetUrl) {
+    let result = get_url_service.get_url(&Url::from("https://very-interesting.org"));
     // . . .
 }
 ```
@@ -105,17 +108,31 @@ fn use_trait_object(http_client: &mut impl HttpClientService) {
 #### Explicit Service Arguments (including Constructor Injection)
 
 ```rust
-fn calculate_web_page_md5_hash<
-    HttpClientServiceObject: HttpClientService,
-    Md5ServiceObject: Md5Service,
+async fn calculate_web_page_message_digest<
+    HttpClientService: GetUrl,
+    MessageDigestService: NewDigestCalculator,
 >(
-    http_client_service: &mut HttpClientServiceObject,
-    md5_service: &mut Md5ServiceObject,
+    http_client_service: &mut HttpClientService,
+    message_digest_service: &mut MessageDigestService,
     url: &Url,
-) -> Result<Md5Hash, Error> {
-    let mut response_reader = http_client_service.get_url(url)?;
+) -> Result<Digest, Error>
+where
+    HttpClientService::HttpResponse: IntoChunkStream,
+    MessageDigestService::DigestCalculator:
+        IntoDigestOctets<DigestOctets = Digest> + Write,
+{
+    let mut digest_calculator = message_digest_service.new_digest_calculator()?;
+    let mut chunk_stream = http_client_service
+        .get_url(url)
+        .await?
+        .into_chunk_stream();
 
-    Ok(md5_service.hash(&response_reader.stream().read()?))
+    while let Some(chunk_result) = chunk_stream.next().await {
+        let chunk = chunk_result?;
+        digest_calculator.write_all(&chunk)?;
+    }
+
+    Ok(digest_calculator.into_digest_octets()?)
 }
 ```
 
@@ -124,19 +141,25 @@ fn calculate_web_page_md5_hash<
   each injected parameter.  E.g.,
 
   ```rust
-  // Generated from the signature of `calculate_web_page_md5_hash`:
-  fn calculate_web_page_md5_hash_with_injector<
-      Injector: InjectHttpClientService + InjectMd5Service,
+  // Generated from the signature of `calculate_web_page_message_digest`:
+  async fn calculate_web_page_message_digest_with_injector<
+      Injector: InjectGetUrlService + InjectNewDigestCalculatorService,
   >(
       injector: &mut Injector,
       url: &Url,
-  ) -> Result<Md5Hash, Error> {
-      let mut http_client_service = InjectHttpClientService::inject(injector);
-      let mut md5_service = InjectMd5Service::inject(injector);
+  ) -> Result<Digest, Error>
+  where
+      <<Injector as InjectGetUrlService>::Service as HttpClientService>::HttpResponse:
+          IntoChunkStream,
+      <<Injector as InjectNewDigestCalculatorService>::Service as MessageDigestService>::DigestCalculator:
+          IntoDigestOctets<DigestOctets = Digest> + Write,
+  {
+      let mut http_client_service = InjectGetUrlService::inject(injector);
+      let mut message_digest_service = InjectNewDigestCalculatorService::inject(injector);
 
-      calculate_web_page_md5_hash(
+      calculate_web_page_message_digest(
           &mut http_client_service,
-          &mut md5_service,
+          &mut message_digest_service,
           url,
       )
   }
@@ -148,15 +171,33 @@ This is (essentially)
 [the generated `. . . _with_injector` function from Explicit Service Arguments (including Constructor Injection)](#explicit-service-arguments-including-constructor-injection).
 
 ```rust
-fn calculate_web_page_md5_hash<Injector: InjectHttpClientService + InjectMd5Service>(
+fn calculate_web_page_message_digest_with_injector<
+    Injector: InjectGetUrlService + InjectNewDigestCalculatorService,
+>(
     injector: &mut Injector,
     url: &Url,
-) -> Result<Md5Hash, Error> {
-    let mut http_client_service = InjectHttpClientService::inject(injector);
-    let mut response_reader = http_client_service.get_url(url)?;
+) -> Result<Digest, Error>
+where
+    <<Injector as InjectGetUrlService>::Service as GetUrl>::HttpResponse:
+        IntoChunkStream,
+    <<Injector as InjectNewDigestCalculatorService>::Service as NewDigestCalculator>::DigestCalculator:
+        IntoDigestOctets<DigestOctets = Digest> + Write,
+{
+    let mut message_digest_service = InjectNewDigestCalculatorService::inject(injector);
+    let mut digest_calculator = message_digest_service.new_digest_calculator()?;
 
-    let mut md5_service = InjectMd5Service::inject(injector);
-    Ok(md5_service.hash(&response_reader.stream().read()?))
+    let mut http_client_service = InjectGetUrlService::inject(injector);
+    let mut chunk_stream = http_client_service
+        .get_url(url)
+        .await?
+        .into_chunk_stream();
+
+    while let Some(chunk_result) = chunk_stream.next().await {
+        let chunk = chunk_result?;
+        digest_calculator.write_all(&chunk)?;
+    }
+
+    Ok(digest_calculator.into_digest_octets()?)
 }
 ```
 
@@ -167,9 +208,9 @@ fn calculate_web_page_md5_hash<Injector: InjectHttpClientService + InjectMd5Serv
 * Allows accomodating run-time injection features.
   * An injector can change the value it returns for a `Service::inject(injector)`
     call at run time.
-  * Defining `inject_fallible(&mut self) -> Result<Self::ServiceObject, Error>` can
+  * Defining `inject_fallible(&mut self) -> Result<Self::Service, Error>` can
     accomodate injection that can fail at run time.
-  * Similarly, `inject_optional(&mut self) -> Option<Self::ServiceObject>` can
+  * Similarly, `inject_optional(&mut self) -> Option<Self::Service>` can
     accomodate injecting a service that may not be available at a given time during
     application execution.
 * Asynchronous injection can be similarly accomodated.
@@ -184,16 +225,30 @@ client requires.
 
 ```rust
 // [AllServicesObject] is usually named `Context` in CGP.
-fn calculate_web_page_md5_hash<AllServicesObject: HttpClientService + Md5Service>(
+fn calculate_web_page_message_digest_with_all_services_object<
+    AllServicesObject: GetUrl + NewDigestCalculator,
+>(
     all_services_object: &mut AllServicesObject,
     url: &Url,
-) -> Result<Md5Hash, Error> {
-    let mut response_reader = HttpClientService::get_url(all_services_object, url)?;
+) -> Result<Digest, Error>
+where
+    <AllServicesObject as GetUrl>::HttpResponse:
+        IntoChunkStream,
+    <AllServicesObject as NewDigestCalculatorService>::DigestCalculator:
+        IntoDigestOctets<DigestOctets = Digest> + Write,
+{
+    let mut digest_calculator = all_services_object.new_digest_calculator()?;
+    let mut chunk_stream = all_services_object
+        .get_url(url)
+        .await?
+        .into_chunk_stream();
 
-    Ok(Md5Service::hash(
-        all_services_object,
-        &response_reader.stream().read()?,
-    ))
+    while let Some(chunk_result) = chunk_stream.next().await {
+        let chunk = chunk_result?;
+        digest_calculator.write_all(&chunk)?;
+    }
+
+    Ok(digest_calculator.into_digest_octets()?)
 }
 ```
 
@@ -202,7 +257,7 @@ fn calculate_web_page_md5_hash<AllServicesObject: HttpClientService + Md5Service
 * Overriding an individual service requires a new type, possibly forwarding
   all but one services methods to the previous all-services object.
 * The services required by a function can still be discovered from the list of
-  super-traits in the signature (`HttpClientService + Md5Service`).
+  super-traits in the signature (`GetUrl + NewDigestCalculator`).
 * Listing the services required by a function is shorter than having a type
   parameter for each service.
 * Changing bindings at run time can still be accomodated by appropriately
@@ -222,21 +277,30 @@ e.g. by macro expansion with some configuration for what code to generate.
 
 ```rust
 [#(di_service)]
-trait WebPageMd5Calculator {
-  #[
-    associated_types(Error),
-    inject(
-      http_client_service: &mut impl HttpClientService,
-      md5_service: &mut impl Md5ServiceObject,
-    )
-  ]
-  fn calculate_web_page_md5_hash(
-      url: &Url,
-  ) -> Result<Md5Hash, Associated::Error> {
-      let mut response_reader = http_client_service.get_url(url)?;
+trait CalculateWebPageMessageDigest {
+    #[
+        associated_types(Error),
+        inject(
+            http_client_service: &mut impl GetUrl,
+            message_digest_service: &mut impl NewDigestCalculator,
+        )
+    ]
+    async fn calculate_web_page_message_digest(
+        url: &Url,
+    ) -> Result<Digest, Associated::Error> {
+        let mut digest_calculator = message_digest_service.new_digest_calculator()?;
+        let mut chunk_stream = http_client_service
+            .get_url(url)
+            .await?
+            .into_chunk_stream();
 
-      Ok(md5_service.hash(&response_reader.stream().read()?))
-  }
+        while let Some(chunk_result) = chunk_stream.next().await {
+            let chunk = chunk_result?;
+            digest_calculator.write_all(&chunk)?;
+        }
+
+        Ok(digest_calculator.into_digest_octets()?)
+    }
 }
 ```
 
