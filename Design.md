@@ -59,11 +59,12 @@ Listed in [§Desired Features in Requirements.md](Requirements.md#desired-featur
       `request_value` returns it as `Some(injected_result)`.  If no such value
       was stored, it returns `None`.
 * [Pavex](https://github.com/LukeMathWalker/pavex/blob/main/ARCHITECTURE.md)
-  uses its build tool in order to perform code generation before building.  It
-  uses the 'classic' style of listing required services as function
-  parameters.  It allows using traits in the place of a type in the function
-  parameter declaration.  Service bindings are generated from a 'Blueprint'
-  file, and by analyzing type signatures and other output from `rustdoc`.  See
+  uses its own build tool in order to perform code generation before building.  It
+  uses the 'classic' style of listing injected services as function
+  parameters.  It allows using a service trait in the place of a type in the
+  function parameter declaration.  Service bindings are generated from a
+  'Blueprint' file, and by analyzing type signatures, annotations (Rust
+  procedural macro results) and other output from `rustdoc`.  See
   [Reasoning about Rust: an introduction to Rustdoc's JSON format - Luca Palmieri - EuroRust 2023](https://www.youtube.com/watch?v=OxQYyg_v3rw).
 * Other Dependency Injection crates.  Many of them try to bring code to an object-oriented
   approach.
