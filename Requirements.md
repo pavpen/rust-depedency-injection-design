@@ -46,6 +46,9 @@ designs are considered in [Design.md](Design.md).
   Return-Position `impl Trait` type).  (Currently encompasses supporting
   `async` service methods.  See, e.g.
   [Announcing `async fn` and return-position `impl Trait` in traits](https://blog.rust-lang.org/2023/12/21/async-fn-rpit-in-traits/).)
+* Automatic collection of service implementations for a given service
+  interface into a collection (called
+  [Multibindings](https://dagger.dev/dev-guide/multibindings.html) in Dagger.)
 
 ## User Journeys
 
