@@ -103,7 +103,7 @@ fn use_trait_object(get_url_service: &mut impl GetUrl) {
 }
 ```
 
-### Service Client Options
+### Service Client Design Options
 
 #### Explicit Service Arguments (including Constructor Injection)
 
