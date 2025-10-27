@@ -4,7 +4,7 @@ description = """\
     A demo implementation of a Web page 256-bit SHA-3 hash calculator as an \
     injectable service with dependencies as explicit arguments"""
 authors = ["Pavel Penev <pavpen@gmail.com>"]
-license = "BSD-2-Clause"
+license = "MIT"
 version = "0.1.0"
 edition = "2024"
 

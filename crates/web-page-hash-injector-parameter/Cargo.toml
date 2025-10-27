@@ -5,7 +5,7 @@ description = """\
     injectable service with dependencies from an injector parameter\
     """
 authors = ["Pavel Penev <pavpen@gmail.com>"]
-license = "BSD-2-Clause"
+license = "MIT"
 version = "0.1.0"
 edition = "2024"
 
