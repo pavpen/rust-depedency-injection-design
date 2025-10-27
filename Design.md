@@ -171,22 +171,22 @@ This is (essentially)
 [the generated `. . . _with_injector` function from Explicit Service Arguments (including Constructor Injection)](#explicit-service-arguments-including-constructor-injection).
 
 ```rust
-fn calculate_web_page_message_digest_with_injector<
-    Injector: InjectGetUrlService + InjectNewDigestCalculatorService,
+async fn calculate_web_page_message_digest_with_injector<
+    'fn_call,
+    Injector: InjectRef<'fn_call, HttpClientService> + InjectRef<'fn_call, MessageDigestService>,
 >(
-    injector: &mut Injector,
-    url: &Url,
-) -> Result<Digest, Error>
+    &self,
+    injector: &'fn_call Injector,
+    url: &Self::Url,
+) -> Result<Self::Digest, Self::Error>
 where
-    <<Injector as InjectGetUrlService>::Service as GetUrl>::HttpResponse:
-        IntoChunkStream,
-    <<Injector as InjectNewDigestCalculatorService>::Service as NewDigestCalculator>::DigestCalculator:
-        IntoDigestOctets<DigestOctets = Digest> + Write,
+    HttpClientService: 'fn_call,
+    MessageDigestService: 'fn_call,
+    &'fn_call Injector: Send
 {
-    let mut message_digest_service = InjectNewDigestCalculatorService::inject(injector);
+    let message_digest_service: &MessageDigestService = InjectRef::inject_ref(injector);
     let mut digest_calculator = message_digest_service.new_digest_calculator()?;
-
-    let mut http_client_service = InjectGetUrlService::inject(injector);
+    let http_client_service: &HttpClientService = InjectRef::inject_ref(injector);
     let mut chunk_stream = http_client_service
         .get_url(url)
         .await?
