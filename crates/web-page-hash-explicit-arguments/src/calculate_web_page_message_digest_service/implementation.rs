@@ -6,7 +6,7 @@ use std::io::Write;
 use std::marker::PhantomData;
 
 #[derive(Debug)]
-pub struct WebPageMessageDigestCalculatorService<
+pub struct CalculateWebPageMessageDigestService<
     Url,
     Digest,
     Error: Sync,
@@ -26,7 +26,7 @@ impl<
     HttpClientService: GetUrl<Url = Url>,
     MessageDigestService: NewDigestCalculator + Send,
 >
-    WebPageMessageDigestCalculatorService<
+    CalculateWebPageMessageDigestService<
         Url,
         Digest,
         Error,
@@ -38,7 +38,7 @@ impl<
         http_client_service: HttpClientService,
         message_digest_service: MessageDigestService,
     ) -> Self {
-        WebPageMessageDigestCalculatorService::<
+        CalculateWebPageMessageDigestService::<
             Url,
             Digest,
             Error,
@@ -60,7 +60,7 @@ impl<
     HttpClientService: GetUrl<Url = Url>+Sync,
     MessageDigestService: NewDigestCalculator + Send+Sync,
 > CalculateWebPageMessageDigest
-    for WebPageMessageDigestCalculatorService<
+    for CalculateWebPageMessageDigestService<
         Url,
         Digest,
         Error,

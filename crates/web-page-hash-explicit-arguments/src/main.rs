@@ -1,10 +1,10 @@
 use clap::Parser;
 use web_page_hash_explicit_arguments::{
+    calculate_web_page_message_digest_service::{
+        CalculateWebPageMessageDigest, CalculateWebPageMessageDigestService,
+    },
     http_client_service::ReqwestHttpClientService,
     message_digest_service::Sha3_256BitMessageDigestService,
-    web_page_message_digest_calculator_service::{
-        CalculateWebPageMessageDigest, WebPageMessageDigestCalculatorService,
-    },
 };
 
 /// Prints the 256-bit SHA-3 message digest of a Web page
@@ -37,8 +37,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let url = reqwest::Url::parse(&args.url)?;
     let http_client_service = ReqwestHttpClientService::new();
     let message_digest_service = Sha3_256BitMessageDigestService::new();
-    let web_page_message_digest_calculator_service =
-        WebPageMessageDigestCalculatorService::<
+    let calculate_web_page_message_digest_service =
+        CalculateWebPageMessageDigestService::<
             reqwest::Url,
             [u8; 32],
             anyhow::Error,
@@ -47,7 +47,7 @@ async fn main() -> Result<(), anyhow::Error> {
         >::new(http_client_service, message_digest_service);
 
     println!("Hashing content: {}", url);
-    let digest = web_page_message_digest_calculator_service
+    let digest = calculate_web_page_message_digest_service
         .calculate_web_page_message_digest(&url)
         .await?;
     println!("256-bit SHA-3: 0x{:x}", HexFormatted(&digest));
