@@ -1505,7 +1505,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "web-page-hash-explicit-arguments"
+name = "web-page-hash-using-explicit-arguments"
 version = "0.1.0"
 dependencies = [
  "anyhow",

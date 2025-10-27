@@ -1,5 +1,5 @@
 [package]
-name = "web-page-hash-injector-parameter"
+name = "web-page-hash-using-injector-parameter"
 description = """\
     A demo implementation of a Web page 256-bit SHA-3 hash calculator as an \
     injectable service with dependencies from an injector parameter\

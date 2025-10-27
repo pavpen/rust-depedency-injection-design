@@ -1,5 +1,5 @@
 use clap::Parser;
-use web_page_hash_explicit_arguments::{
+use web_page_hash_using_explicit_arguments::{
     calculate_web_page_message_digest_service::{
         CalculateWebPageMessageDigest, CalculateWebPageMessageDigestService,
     },

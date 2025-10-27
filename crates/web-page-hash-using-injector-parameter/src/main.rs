@@ -1,5 +1,5 @@
 use clap::Parser;
-use web_page_hash_injector_parameter::{
+use web_page_hash_using_injector_parameter::{
     calculate_web_page_message_digest_service::{self, CalculateWebPageMessageDigest},
     http_client_service::{GetUrl, ReqwestHttpClientService},
     injector::InjectRef,
