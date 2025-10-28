@@ -38,7 +38,6 @@ On Ubuntu:
 ### Development Pre-requisites
 
 * `cargo install cargo-about`
-* `cargo install cargo-deny`
 
 ### Recommended Tools
 
