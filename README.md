@@ -23,7 +23,7 @@ They include:
   partial service implementation. (E.g., when only some service methods are
   required, and provided.)
 
-Design options are reviewed in [Design.md](Design.md).
+Design options, and challenges are reviewed in [Design.md](Design.md).
 
 Prototype code is under [crates/](crates/).
 
