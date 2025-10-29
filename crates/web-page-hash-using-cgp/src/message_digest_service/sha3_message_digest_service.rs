@@ -24,8 +24,8 @@ impl Sha3_256BitMessageDigestService {
     }
 }
 
-#[cgp_provider]
-impl<Context> NewDigestCalculatorService<Context> for Sha3_256BitMessageDigestService {
+#[cgp_impl(Sha3_256BitMessageDigestService)]
+impl<Context> NewDigestCalculatorService for Context {
     type DigestCalculator = sha3::Sha3_256;
     type Error = Infallible;
 

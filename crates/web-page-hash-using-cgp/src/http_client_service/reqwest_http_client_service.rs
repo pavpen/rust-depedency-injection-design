@@ -18,8 +18,8 @@ impl HasUrlType for ReqwestHttpClientService {
     type Url = reqwest::Url;
 }
 
-#[cgp_provider]
-impl<Context> GetUrlService<Context> for ReqwestHttpClientService
+#[cgp_impl(ReqwestHttpClientService)]
+impl<Context> GetUrlService for Context
 where
     Context: HasUrlType,
     Context::Url: reqwest::IntoUrl + Clone,

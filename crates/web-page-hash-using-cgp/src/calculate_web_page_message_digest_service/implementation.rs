@@ -10,9 +10,8 @@ use std::io::Write;
 
 pub struct CalculateWebPageMessageDigestServiceObject;
 
-#[cgp_provider]
-impl<Context> CalculateWebPageMessageDigestService<Context>
-    for CalculateWebPageMessageDigestServiceObject
+#[cgp_impl(CalculateWebPageMessageDigestServiceObject)]
+impl<Context> CalculateWebPageMessageDigestService for Context
 where
     Context: HasUrlType + HasDigestType + HasErrorType + GetUrl + NewDigestCalculator,
     <Context as HasErrorType>::Error: From<<Context as GetUrl>::Error>
