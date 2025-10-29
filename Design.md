@@ -343,6 +343,75 @@ Proposed meaning of the syntax in the above example:
 
 ## Challenges
 
+### Borrowing Multiple Services Mutably from an Injector
+
+This may require using run-time borrow checking
+([Interior Mutability](https://doc.rust-lang.org/book/ch15-05-interior-mutability.html)),
+or `unsafe` code.
+
+In [§Explicit Injector Argument](#explicit-injector-argument) we had the
+`calculate_web_page_message_digest_with_injector` function that obtained two
+services by calling `InjectRef::inject_ref(injector)`.
+
+Imagine that we wanted inject the two services as mutable references, e.g.,
+because the services have internal state, and we want to allow them to change
+it.
+
+Let's say we had the following trait for this purpose:
+
+```rust
+/// Allows injecting a mutable reference to a service
+///
+/// This trait is usually implemented by an injector type.
+pub trait InjectMut<'self_lifetime, T> {
+    fn inject_mut(&'self_lifetime mut self) -> &'self_lifetime mut T;
+}
+```
+
+Without interior mutability, we can't return a mutable reference from an
+injector, unless the injector object is also borrowed mutably.  So, we need
+`&mut self` above.
+
+The following won't work:
+
+```rust
+async fn calculate_web_page_message_digest<
+    'fn_call,
+    Injector: InjectMut<'fn_call, Self::HttpClientService>
+        + InjectMut<'fn_call, Self::MessageDigestService>,
+>(
+    &self,
+    injector: &'fn_call mut Injector,
+    url: &Self::Url,
+) -> Result<Self::Digest, Self::Error>
+where
+    Self::HttpClientService: 'fn_call,
+    Self::MessageDigestService: 'fn_call,
+    &'fn_call Injector: Send,
+{
+    // Throughout the lifetime of `message_digest_service`, `injector` is
+    // borrowed mutably.
+    let message_digest_service: &mut Self::MessageDigestService =
+        InjectMut::inject_mut(injector);
+
+    // We want to use `http_client_service` before `message_digest_service` is
+    // out of scope, but it also requires borrowing `injector` mutably.
+    let http_client_service: &mut Self::HttpClientService = InjectMut::inject_mut(injector);
+
+    // . . .
+}
+```
+
+([Crate example](crates/example-of-injector-mutable-borrow-challenge/src/main.rs))
+
+Even though `injector` may be able to provide mutable references to multiple
+services safely, expressing that in the Borrow Checker type system is
+currently not trivial.
+
+One possibily wat to do that is by having `inject_mut` return both a service
+object, and an updated injector, which is able to inject all services, except
+the one that was just injected.
+
 ### Nameless Return Types
 
 Currently (in 2025) existing library functions, and common idioms, such as

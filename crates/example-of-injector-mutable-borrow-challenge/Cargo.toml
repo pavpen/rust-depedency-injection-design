@@ -1,0 +1,8 @@
+[package]
+name = "example-of-injector-mutable-borrow-challenge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+futures-core = "0.3.31"
+futures-util = "0.3.31"
