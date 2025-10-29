@@ -278,18 +278,25 @@ e.g. by macro expansion with some configuration for what code to generate.
 ```rust
 #[injectable]
 trait CalculateWebPageMessageDigest {
-    #[
-        associated_types(Error),
-        inject(
-            http_client_service: &mut impl GetUrl,
-            message_digest_service: &mut impl NewDigestCalculator,
-        )
-    ]
+    type Error;
+
+    #[inject]
+    fn http_client_service(&self) -> &mut impl GetUrl;
+
+    #[inject]
+    fn message_digest_service(&self) -> &mut impl NewDigestCalculator;
+
     async fn calculate_web_page_message_digest(
-        url: &Url,
-    ) -> Result<Digest, Associated::Error> {
-        let mut digest_calculator = message_digest_service.new_digest_calculator()?;
-        let mut chunk_stream = http_client_service
+        &self,
+        url: &Self::GetUrlService::Url,
+    ) -> Result<
+        Self::NewDigestCalculatorService::IntoDigestOctets::DigestOctets,
+        Self::Error
+    > {
+        let mut digest_calculator =
+            self.message_digest_service().new_digest_calculator()?;
+        let mut chunk_stream = self
+            .http_client_service()
             .get_url(url)
             .await?
             .into_chunk_stream();
@@ -303,6 +310,36 @@ trait CalculateWebPageMessageDigest {
     }
 }
 ```
+
+Proposed meaning of the syntax in the above example:
+
+* `#[injectable]` declares `CalculateWebPageMessageDigest` as the interface of
+  an injectable service (similar to
+  [the `@Injectable` decorator in Angular](https://angular.dev/api/core/Injectable)).
+  This gives an `injectable` procedural macro the chance to process the trait
+  we're declaring.
+  * For a trait that contains multiple functions, we can generate per-function
+    traits (CGP-style) to allow partial implementation of larger services, as
+    well as requiring a partial implementation when injecting.
+    * In the above example we're declaring a trait that contains a single
+      function, so it wouldn't require generating per-function traits.
+* `#[inject]` declares a getter that is auto-generated, and returns an
+  injected service.
+  * In the above example, we'll also need to generate associated types:
+
+    ```rust
+    trait CalculateWebPageMessageDigest {
+        // Corresponds to the return type of:
+        // #[inject]
+        // fn http_client_service(&self) -> &mut impl GetUrl;
+        type GetUrlService: GetUrl;
+
+        // Corresponds to the return type of:
+        // #[inject]
+        // fn message_digest_service(&self) -> &mut impl NewDigestCalculator;
+        type NewDigestCalculatorService: NewDigestCalculator;
+    }
+    ```
 
 ## Challenges
 
