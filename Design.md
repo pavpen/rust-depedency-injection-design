@@ -343,65 +343,72 @@ Proposed meaning of the syntax in the above example:
 
 ## Challenges
 
-* Currently (in 2025) existing library functions, and common idioms, such as
-  `async` functions can have return types that cannot be named.  (E.g., see
-  [Announcing `async fn` and return-position `impl Trait` in traits](https://blog.rust-lang.org/2023/12/21/async-fn-rpit-in-traits/).)
-  This can make wrapping existing libraries, or `async` functions as
-  injectable service traits with a standardized structure that allows, e.g.
-  requesting additional traits for a return type rather difficult.
-  * E.g.:
+### Nameless Return Types
 
-    ```rust
-    pub trait GetUrl {
-        // We may have a standardized structure for traits that expose a
-        // function, in which the function parameter, and return types are
-        // accessible:
-        type Url;
-        type Output;
+Currently (in 2025) existing library functions, and common idioms, such as
+`async` functions can have return types that cannot be named.  (E.g., see
+[Announcing `async fn` and return-position `impl Trait` in traits](https://blog.rust-lang.org/2023/12/21/async-fn-rpit-in-traits/).)
+This can make wrapping existing libraries, or `async` functions as injectable
+service traits with a standardized structure that allows, e.g. requesting
+additional traits for a return type rather difficult.
 
-        // Currently, an `async` function declaration is syntactic sugar for a
-        // function with a return type that `impl Future`, but cannot be
-        // named.  This gets in the way of writing code that may, or may not
-        // require additional constraints, such as `Send` for the returned
-        // future. 
-        fn get_url(&self, url: &Self::Url) -> Self::Output;
-    }
+* E.g.:
 
-    // There's currently no way to `impl GetUrl for UrlGetService` that looks
-    // like the following in stable Rust.
-    struct UrlGetService {}
+  ```rust
+  pub trait GetUrl {
+      // We may have a standardized structure for traits that expose a
+      // function, in which the function parameter, and return types are
+      // accessible:
+      type Url;
+      type Output;
 
-    impl GetUrl for UrlGetService {
-        type Url = reqwest::Url;
+      // Currently, an `async` function declaration is syntactic sugar for a
+      // function with a return type that `impl Future`, but cannot be
+      // named.  This gets in the way of writing code that may, or may not
+      // require additional constraints, such as `Send` for the returned
+      // future. 
+      fn get_url(&self, url: &Self::Url) -> Self::Output;
+  }
 
-        // This currently requires unstable Rust:
-        type Output = impl Future<Output = Result<reqwest::Response, reqwest::Error>>;
+  // There's currently no way to `impl GetUrl for UrlGetService` that looks
+  // like the following in stable Rust.
+  struct UrlGetService {}
 
-        async fn get_url(
-            &self,
-            url: &Self::Url
-        ) -> Result<Self::HttpResponse, Self::Error> {
-            reqwest::get(url.clone()).await
-        }
-    }
-    ```
+  impl GetUrl for UrlGetService {
+      type Url = reqwest::Url;
 
-    * See
-      [Async in public trait](https://users.rust-lang.org/t/async-in-public-trait/108400),
-      and
-      [Crate trait_variant](https://docs.rs/trait-variant/latest/trait_variant/)
-      for more details.
-* Assembling a list of service implementations (called
-  [Multibindings](https://dagger.dev/dev-guide/multibindings.html) in Dager)
-  is not straightforward because
-  ([macro invocations are not intended to have state](https://github.com/rust-lang/cargo/issues/9084#issuecomment-778687670)).
-  * Outputting `const` expressions that add to a collection from a macro may work.
-  * The [inventory crate](https://crates.io/crates/inventory) has such an
-    approach, but const evaluation seems to be a challenge.  The
-    [linkme crate](https://crates.io/crates/linkme) relies on a linker to
-    assemble the result, and doesn't seem to support WebAssemby.
-  * A
-    [crate build script](https://doc.rust-lang.org/cargo/reference/build-script-examples.html)
-    is an option, but it may require re-scanning all code to function
-    properly, and
-    [generating crate dependencies would currently not work](https://doc.rust-lang.org/cargo/reference/build-script-examples.html).
+      // This currently requires unstable Rust:
+      type Output = impl Future<Output = Result<reqwest::Response, reqwest::Error>>;
+
+      async fn get_url(
+          &self,
+          url: &Self::Url
+      ) -> Result<Self::HttpResponse, Self::Error> {
+          reqwest::get(url.clone()).await
+      }
+  }
+  ```
+
+  * See
+    [Async in public trait](https://users.rust-lang.org/t/async-in-public-trait/108400),
+    and
+    [Crate trait_variant](https://docs.rs/trait-variant/latest/trait_variant/)
+    for more details.
+
+### Multi-binding
+
+Assembling a list of service implementations (called
+[Multibindings](https://dagger.dev/dev-guide/multibindings.html) in Dager)
+is not straightforward because
+([macro invocations are not intended to have state](https://github.com/rust-lang/cargo/issues/9084#issuecomment-778687670)).
+
+* Outputting `const` expressions that add to a collection from a macro may work.
+* The [inventory crate](https://crates.io/crates/inventory) has such an
+  approach, but const evaluation seems to be a challenge.  The
+  [linkme crate](https://crates.io/crates/linkme) relies on a linker to
+  assemble the result, and doesn't seem to support WebAssemby.
+* A
+  [crate build script](https://doc.rust-lang.org/cargo/reference/build-script-examples.html)
+  is an option, but it may require re-scanning all code to function
+  properly, and
+  [generating crate dependencies would currently not work](https://doc.rust-lang.org/cargo/reference/build-script-examples.html).
