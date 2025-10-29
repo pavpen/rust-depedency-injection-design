@@ -142,6 +142,8 @@ where
 }
 ```
 
+([Example crate](crates/web-page-hash-using-explicit-arguments/src/calculate_web_page_message_digest_service/implementation.rs))
+
 * Keeping track of numerous parameters may get laborious.
 * Allows manual binding for each call, or generating code for constructing
   each injected parameter.  E.g.,
@@ -206,6 +208,8 @@ where
     Ok(digest_calculator.into_digest_octets()?)
 }
 ```
+
+([Example crate](crates/web-page-hash-using-injector-parameter/src/calculate_web_page_message_digest_service/implementation.rs))
 
 * Reduced number of call parameters.
 * Injectors can be shared among calls (without repeating each argument
