@@ -276,7 +276,7 @@ generated.  This would look more like a Domain-Specific Language processed,
 e.g. by macro expansion with some configuration for what code to generate.
 
 ```rust
-[#(di_service)]
+#[injectable]
 trait CalculateWebPageMessageDigest {
     #[
         associated_types(Error),
