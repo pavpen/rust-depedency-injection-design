@@ -470,16 +470,18 @@ Currently (in 2025) existing library functions, and common idioms, such as
 `async` functions, can have return types that cannot be named.  (E.g., see
 [Announcing `async fn` and return-position `impl Trait` in traits](https://blog.rust-lang.org/2023/12/21/async-fn-rpit-in-traits/).)
 This can make wrapping existing libraries, or `async` functions as injectable
-service traits with a standardized structure that allows, e.g. requesting
-additional traits for a return type rather difficult.
+service traits with a standardized structure difficult.  E.g., you may want to
+define the service interface, so that the return type as an associated type of
+the service trait, so that clients can require that it implements additional
+traits.
 
-* E.g.:
+* Example:
 
   ```rust
   pub trait GetUrl {
       // We may have a standardized structure for traits that expose a
       // function, in which the function parameter, and return types are
-      // accessible:
+      // accessible as associated types:
       type Url;
       type Output;
 
@@ -491,8 +493,7 @@ additional traits for a return type rather difficult.
       fn get_url(&self, url: &Self::Url) -> Self::Output;
   }
 
-  // There's currently no way to `impl GetUrl for UrlGetService` that looks
-  // like the following in stable Rust.
+  // Currently we can't `impl GetUrl for UrlGetService` in stable Rust.
   struct UrlGetService {}
 
   impl GetUrl for UrlGetService {
@@ -510,11 +511,14 @@ additional traits for a return type rather difficult.
   }
   ```
 
-  * See
-    [Async in public trait](https://users.rust-lang.org/t/async-in-public-trait/108400),
-    and
-    [Crate trait_variant](https://docs.rs/trait-variant/latest/trait_variant/)
-    for more details.
+The [trait_variant crate](https://docs.rs/trait-variant/latest/trait_variant/)
+has the approach of generating an additional trait from a given trait
+containing `async` functions.  The generated trait adds extra trait
+requirements to the nameless return types (e.g.
+`fn run() -> impl Future<Output = Result<reqwest::Response, reqwest::Error>> + Send`).
+
+See
+  [Async in public trait](https://users.rust-lang.org/t/async-in-public-trait/108400).
 
 ### Multi-binding
 
