@@ -415,7 +415,7 @@ the one that was just injected.
 ### Nameless Return Types
 
 Currently (in 2025) existing library functions, and common idioms, such as
-`async` functions can have return types that cannot be named.  (E.g., see
+`async` functions, can have return types that cannot be named.  (E.g., see
 [Announcing `async fn` and return-position `impl Trait` in traits](https://blog.rust-lang.org/2023/12/21/async-fn-rpit-in-traits/).)
 This can make wrapping existing libraries, or `async` functions as injectable
 service traits with a standardized structure that allows, e.g. requesting
