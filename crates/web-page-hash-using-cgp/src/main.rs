@@ -28,7 +28,6 @@ struct Args {
 
 type Digest = [u8; 32];
 
-#[cgp_context]
 #[derive(Debug, Default)]
 struct Services;
 
@@ -40,7 +39,7 @@ impl Services {
 
 delegate_and_check_components! {
     CanUseServices for Services;
-    ServicesComponents {
+    Services {
         ErrorTypeProviderComponent: UseAnyhowError,
         NewDigestCalculatorServiceComponent: Sha3_256BitMessageDigestService,
         UrlTypeProviderComponent: UseType<reqwest::Url>,
