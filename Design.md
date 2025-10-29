@@ -9,7 +9,7 @@ Listed in [§Desired Features in Requirements.md](Requirements.md#desired-featur
 
 ## Existing Approaches
 
-* [Context-Generic Programming Patterns (DRAFT)](https://patterns.contextgeneric.dev/introduction.html)
+* [Context-Generic Programming Patterns (DRAFT)](https://patterns.contextgeneric.dev/introduction.html)[^1]
   * A service is defined as a trait.
   * CGP prefers to inject individual functions, rather than services grouping a
     number of them.  This allows partial implementations of 'a traditional'
@@ -68,6 +68,12 @@ Listed in [§Desired Features in Requirements.md](Requirements.md#desired-featur
   [Reasoning about Rust: an introduction to Rustdoc's JSON format - Luca Palmieri - EuroRust 2023](https://www.youtube.com/watch?v=OxQYyg_v3rw).
 * Other Dependency Injection crates.  Many of them try to bring code to an object-oriented
   approach.
+
+[^1]: The
+  [Context-Generic Programming Patterns (DRAFT)](https://patterns.contextgeneric.dev/introduction.html)
+  book currently contains deprecated syntax.  See, e.g., the
+  [CGP v0.6.0 Release - Major ergonomic improvements for provider and context implementations](https://contextgeneric.dev/blog/v0-6-0-release/)
+  post for more recent syntax.
 
 ## Design
 
