@@ -58,6 +58,9 @@ Listed in [§Desired Features in Requirements.md](Requirements.md#desired-featur
       type ID was stored in the `Request` object, `request_ref` or
       `request_value` returns it as `Some(injected_result)`.  If no such value
       was stored, it returns `None`.
+  * Able to inject only specific types.  Can't inject an unknown type
+    implementing a trait this way, since `std::any::TypeId` requires a
+    specific type.
 * [Pavex](https://github.com/LukeMathWalker/pavex/blob/main/ARCHITECTURE.md)
   uses its own build tool in order to perform code generation before building.  It
   uses the 'classic' style of listing injected services as function
