@@ -463,7 +463,7 @@ Even though `injector` may be able to provide mutable references to multiple
 services safely, expressing that in the Borrow Checker type system is
 currently not trivial.
 
-One possibily wat to do that is by having `inject_mut` return both a service
+One possible way to do that is by having `inject_mut` return both a service
 object, and an updated injector, which is able to inject all services, except
 the one that was just injected.
 
