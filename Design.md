@@ -467,6 +467,42 @@ One possible way to do that is by having `inject_mut` return both a service
 object, and an updated injector, which is able to inject all services, except
 the one that was just injected.
 
+```mermaid
+flowchart TB
+    subgraph Injector1 ["`<code>injector</code>`"]
+        Injector1-HttpClientService["`<code>HttpClientService</code>`"]
+        Injector1-MessageDigestService["`<code>MessageDigestService</code>`"]
+    end
+    subgraph injectHttpClientService["`<code>inject_mut&lt;HttpClientService&gt;(injector)</code>`"]
+    end
+    subgraph CodeBlock1 ["`code block`"]
+        CodeBlock1-HttpClientService["`<code>HttpClientService</code>`"]
+    end
+    subgraph Injector2 ["`<code>injector</code>`"]
+        Injector2-HttpClientService["`<code>Nothing</code>`"]
+        Injector2-MessageDigestService["`<code>MessageDigestService</code>`"]
+    end
+
+    subgraph injectMessageDigestService ["`<code>inject_mut&lt;MessageDigestService&gt;(injector)</code>`"]
+    end
+    subgraph CodeBlock2 ["`code block`"]
+        CodeBlock2-HttpClientService["`<code>HttpClientService</code>`"]
+        CodeBlock2-MessageDigestService["`<code>MessageDigestService</code>`"]
+    end
+    subgraph Injector3 ["`<code>injector</code>`"]
+        Injector3-HttpClientService["`<code>Nothing</code>`"]
+        Injector3-MessageDigestService["`<code>Nothing</code>`"]
+    end
+
+    Injector1 --> injectHttpClientService
+    injectHttpClientService --> Injector2
+    injectHttpClientService --> CodeBlock1
+
+    Injector2 --> injectMessageDigestService
+    injectMessageDigestService --> CodeBlock2
+    injectMessageDigestService --> Injector3
+```
+
 ### Nameless Return Types
 
 Currently (in 2025) existing library functions, and common idioms, such as
