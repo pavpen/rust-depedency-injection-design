@@ -463,6 +463,8 @@ Even though `injector` may be able to provide mutable references to multiple
 services safely, expressing that in the Borrow Checker type system is
 currently not trivial.
 
+#### Using the Type System to Reflect Borrow State
+
 One possible way to do that is by having `inject_mut` return both a service
 object, and an updated injector, which is able to inject all services, except
 the one that was just injected.
@@ -502,6 +504,17 @@ flowchart TB
     injectMessageDigestService --> CodeBlock2
     injectMessageDigestService --> Injector3
 ```
+
+In the diagram above:
+
+* Each `injector` would have a different data type, reflecting what services
+  it can inject.
+* `inject_mut<Service>(injector)` would return the injected service, and a new
+  injector that can inject only the services not, yet injected.
+
+In essence, we'd be implementing borrow checking using the type Rust system.
+(Also, this is similar to how CGP implements what its blog calls
+['Partial Variants'](https://contextgeneric.dev/blog/extensible-datatypes-part-4/#partial-variants).)
 
 ### Nameless Return Types
 
