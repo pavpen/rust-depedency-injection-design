@@ -516,6 +516,69 @@ In essence, we'd be implementing borrow checking using the type Rust system.
 (Also, this is similar to how CGP implements what its blog calls
 ['Partial Variants'](https://contextgeneric.dev/blog/extensible-datatypes-part-4/#partial-variants).)
 
+#### Using an All-Services Object with Transparent Casting
+
+An approach used by CGP to avoid the complications of the Rust borrow checking
+rules is the all-services object.  Such an object could still contain a
+separate object for each injectable service (if necessary).  At the same time
+it can implement the trait for each injectable service by delegating each
+trait's call to a call on a member service object.  (This resembles multiple
+inheritance in object-oriented languages.)
+
+```rust
+impl GetUrl for ReqwestHttpClientService {
+    // . . .
+    async fn get_url(
+      &mut self,
+      url: &Self::Url,
+    ) -> Result<Self::HttpResponse, Self::Error> {
+        // . . . implementation . . .
+    }
+}
+
+impl NewDigestCalculator for Sha3_256BitMessageDigestService {
+    // . . .
+    fn new_digest_calculator(
+        &mut self
+    ) -> Result<Self::DigestCalculator, Self::Error> {
+        // . . . implementation . . .
+    }
+}
+
+struct AllServicesObject {
+    get_url_service: ReqwestGetUrlService,
+    new_digest_calculator_service: Sha3_256BitMessageDigestService,
+}
+
+impl GetUrl for AllServicesObject {
+    // . . .
+    async fn get_url(
+        &mut self,
+        url: &Self::Url,
+    ) -> Result<Self::HttpResponse, Self::Error> {
+        // Delegate the call to the `get_url_service` member:
+        self.get_url_service.get_url(url)
+    }
+}
+
+impl NewDigestCalculator for AllServicesObject {
+    // . . .
+    fn new_digest_calculator(
+        &mut self
+    ) -> Result<Self::DigestCalculator, Self::Error> {
+        // Delegate the call to the `new_digest_calculator_service` member:
+        self.new_digest_calculator_service.new_digest_calculator()
+    }
+}
+```
+
+Now we can use `all_services: &mut AllServicesObject` to call methods that
+require `&mut self` without having to borrow `all_services` multiple times.
+(In an objected oriented language, this would be similar to `AllServicesObject`
+inheriting from both `ReqwestGetUrlService`,
+`Sha3_256BitMessageDigestService`, but without the possibility of conflicting
+method names at the expense of more code.)
+
 ### Nameless Return Types
 
 Currently (in 2025) existing library functions, and common idioms, such as
