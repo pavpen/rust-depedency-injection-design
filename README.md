@@ -4,7 +4,7 @@ This repository prototypes, and reviews several ways of implementing
 [Dependency Injection](https://martinfowler.com/articles/injection.html) in
 Rust.
 
-The desired features are described in [Requirements.md](Requirements.md).
+The desired features are described in [Requirements.md](doc/Requirements.md).
 They include:
 
 * Injecting a service by type.
@@ -23,7 +23,7 @@ They include:
   partial service implementation. (E.g., when only some service methods are
   required, and provided.)
 
-Design options, and challenges are reviewed in [Design.md](Design.md).
+Design options, and challenges are reviewed in [Design.md](doc/Design.md).
 
 Prototype code is under [crates/](crates/).
 
