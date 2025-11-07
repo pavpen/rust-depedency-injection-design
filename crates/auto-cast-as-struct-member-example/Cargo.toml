@@ -1,0 +1,12 @@
+[package]
+name = "auto-cast-as-struct-member-example"
+description = """\
+    A demo of implementing automatic delegation of a trait implementation to a
+    struct member implementing the trait\
+    """
+authors = ["Pavel Penev <pavpen@gmail.com>"]
+license = "MIT"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
