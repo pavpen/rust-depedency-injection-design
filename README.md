@@ -25,6 +25,9 @@ They include:
 
 Design options, and challenges are reviewed in [Design.md](doc/Design.md).
 
+Other Rust techniques that may be related dependency injection implementation
+are under [doc/techniques/](doc/techniques/).
+
 Prototype code is under [crates/](crates/).
 
 ## Build Pre-requisites
